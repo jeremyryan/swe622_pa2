@@ -1,5 +1,7 @@
 package edu.gmu.swe622.pa2;
 
+import java.rmi.Naming;
+import java.rmi.Remote;
 import java.util.stream.Stream;
 
 /**
@@ -49,9 +51,10 @@ public class Main {
             } catch (NumberFormatException exp) {
                 printUsage();
             }
-
+            String registeredName = "rmi://localhost:" + port + "/fss";
             try  {
-                new FSSServer().serve(port);
+                //System.setSecurityManager(new RMISecurityManager());
+                Naming.rebind(registeredName, (Remote) new FSSServer());
             } catch (Exception exp) {
                 System.out.println("FSS server encountered an error");
                 exp.printStackTrace();
@@ -60,21 +63,21 @@ public class Main {
 
         } else if ("client".equalsIgnoreCase(args[0])) {
             try {
-                String serverVar = System.getenv("PA1_SERVER");
+                String serverVar = System.getenv("PA2_SERVER");
                 if (serverVar == null) {
-                    throw new IllegalStateException("environment variable PA1_SERVER must be set");
+                    throw new IllegalStateException("environment variable PA2_SERVER must be set");
                 }
                 String[] serverVarItems = serverVar.split(":");
                 if (serverVarItems.length != 2) {
-                    throw new IllegalStateException("make sure PA1_SERVER environment variable is set: hostname:port");
+                    throw new IllegalStateException("make sure PA2_SERVER environment variable is set: hostname:port");
                 }
                 String hostName = serverVarItems[0];
                 String portParam = serverVarItems[1];
                 if (hostName == null) {
-                    throw new IllegalStateException("no hostname could be found; make sure PA1_SERVER is set: hostname:port");
+                    throw new IllegalStateException("no hostname could be found; make sure PA2_SERVER is set: hostname:port");
                 }
                 if (portParam == null) {
-                    throw new IllegalStateException("no port could be found; make sure PA1_SERVER is set: hostname:port");
+                    throw new IllegalStateException("no port could be found; make sure PA2_SERVER is set: hostname:port");
                 }
                 Integer port = Integer.valueOf(portParam);
                 String actionName = args[1];
@@ -90,11 +93,10 @@ public class Main {
                 }
                 new FSSClient(hostName, port).doAction(action, commandArgs);
             } catch (Exception exp) {
-                System.out.println(exp.getMessage());
+                System.err.println(exp.getMessage());
                 //exp.printStackTrace();
                 System.exit(1);
             }
-
         } else {
             printUsage();
         }
