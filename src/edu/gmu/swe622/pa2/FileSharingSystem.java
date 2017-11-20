@@ -10,12 +10,11 @@ import java.util.List;
  */
 public interface FileSharingSystem extends Remote {
 
-    public Download download(String remoteFile, long startAt) throws IOException;
-    public Upload upload(String remoteFile, long length) throws IOException;
-    public void rm(String fileName) throws IOException;
-    public List<String> dir(String dirName) throws IllegalArgumentException, IOException;
-    public void rmdir(String dirName) throws IOException;
-    public void mkdir(String dirName) throws IOException;
-    public void shutdown() throws RemoteException;
-    public Long getFileSize(String fileName) throws IOException;
+    Download download(String remoteFile, long startAt) throws IOException;
+    Upload upload(String remoteFile, long length) throws IOException;
+    void rm(String fileName) throws IOException;
+    List<String> dir(String dirName) throws IllegalArgumentException, IOException;
+    void rmdir(String dirName) throws IOException;
+    void mkdir(String dirName) throws IOException;
+    void shutdown() throws RemoteException;
 }

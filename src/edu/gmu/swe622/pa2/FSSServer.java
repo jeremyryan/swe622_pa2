@@ -22,7 +22,7 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
     public Download download(String remoteFile, long startAt) throws IOException {
         Path filePath = this.getPath(remoteFile);
         Download download = new DownloadServer(filePath, startAt);
-        return download;
+        return (Download) exportObject(download, 0);
     }
 
     @Override
@@ -35,7 +35,7 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
         if (Files.isDirectory(filePath)) {
             throw new IllegalArgumentException("A directory with that name already exists.");
         }
-        return upload;
+        return (Upload) exportObject(upload, 0);
     }
 
     @Override
@@ -105,23 +105,7 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
 
     @Override
     public void shutdown() throws RemoteException {
-
-    }
-
-
-    @Override
-    public Long getFileSize(String fileName) throws IOException {
-        Path filePath = this.getPath(fileName);
-        if (! this.validatePath(filePath)) {
-            throw new IllegalArgumentException("Relative file paths are not supported");
-        }
-        if (! Files.exists(filePath)) {
-            throw new IllegalArgumentException("filePath could not be found");
-        }
-        if (Files.isDirectory(filePath)) {
-            throw new IllegalArgumentException("filePath is a directory");
-        }
-        return Files.size(filePath);
+        unexportObject(this, true);
     }
 
     /**

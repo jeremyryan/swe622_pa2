@@ -1,7 +1,6 @@
 package edu.gmu.swe622.pa2;
 
 import java.rmi.Naming;
-import java.rmi.Remote;
 import java.util.stream.Stream;
 
 /**
@@ -53,14 +52,13 @@ public class Main {
             }
             String registeredName = "rmi://localhost:" + port + "/fss";
             try  {
-                //System.setSecurityManager(new RMISecurityManager());
-                Naming.rebind(registeredName, (Remote) new FSSServer());
+                //System.setSecurityManager(new SecurityManager());
+                Naming.rebind(registeredName, new FSSServer());
             } catch (Exception exp) {
-                System.out.println("FSS server encountered an error");
+                System.err.println("FSS server encountered an error");
                 exp.printStackTrace();
                 System.exit(1);
             }
-
         } else if ("client".equalsIgnoreCase(args[0])) {
             try {
                 String serverVar = System.getenv("PA2_SERVER");
@@ -92,9 +90,10 @@ public class Main {
                     commandArgs[i] = args[i+2];
                 }
                 new FSSClient(hostName, port).doAction(action, commandArgs);
+
             } catch (Exception exp) {
                 System.err.println(exp.getMessage());
-                //exp.printStackTrace();
+                exp.printStackTrace();
                 System.exit(1);
             }
         } else {

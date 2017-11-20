@@ -23,7 +23,7 @@ public class UploadServer implements Upload {
             file.createNewFile();
         }
         this.bytesUploaded = file.length();
-        this.randomAccessFile = new RandomAccessFile(file, "r");
+        this.randomAccessFile = new RandomAccessFile(file, "rw");
         if (this.bytesUploaded > 0 && this.bytesUploaded < this.length) {
             randomAccessFile.seek(this.bytesUploaded);
         } else {
@@ -40,13 +40,14 @@ public class UploadServer implements Upload {
 
     @Override
     public void write(int[] bytes) throws IOException {
-        File uploadedFile = filePath.toFile();
-
-        while (this.bytesUploaded < this.length) {
-            for (int i = 0; i < bytes.length; i++) {
-                if (++this.bytesUploaded >= this.length) break;
-                this.randomAccessFile.write(bytes[i]);
-            }
+        for (int i = 0; i < bytes.length; i++) {
+            if (this.bytesUploaded++ >= this.length) break;
+            this.randomAccessFile.write(bytes[i]);
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.randomAccessFile.close();
     }
 }

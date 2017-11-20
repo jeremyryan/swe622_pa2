@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+
 /**
  * Implements the client for the File Sharing System.
  */
@@ -120,7 +121,7 @@ public class FSSClient {
         if (dirName == null || dirName.length() == 0) {
             throw new IllegalArgumentException("dirName cannot be blank");
         }
-        this.fss.rm(dirName);
+        this.fss.rmdir(dirName);
         System.out.println("Directory removed");
     }
 
@@ -130,48 +131,46 @@ public class FSSClient {
      * @param localFilePath path of the file to upload to the server
      * @param remoteDestination the name of the remote directory where the file should be created on
      *                          the server
-     * @throws Exception  if the request could not be completed successfully
-     * @throws IOException  if there is an error while communicating with the server
-     * @throws ClassNotFoundException  if the response from the server cannot be cast to a Response object
      */
     private void upload(String localFilePath, String remoteDestination)
-            throws Exception {
+            throws IllegalArgumentException, IOException {
         Path filePath = Paths.get(localFilePath);
         if (! Files.exists(filePath)) {
-            throw new Exception("File could not be found: " + localFilePath);
+            throw new IllegalArgumentException("File could not be found: " + localFilePath);
         } else if (Files.isDirectory(filePath)) {
-            throw new Exception("Directories cannot be uploaded: " + localFilePath);
+            throw new IllegalArgumentException("Directories cannot be uploaded: " + localFilePath);
         }
 
         Long fileSize = Files.size(filePath);
-        Upload upload = this.fss.upload(filePath.toString(), fileSize);
+
+        Upload upload = this.fss.upload(remoteDestination, fileSize);
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(filePath.toFile(), "r")) {
-            Long uploadedBytes = this.fss.getFileSize(remoteDestination);
-            long total = uploadedBytes.longValue();
+            Long bytesWritten = upload.fileSize();
             System.out.println("Uploading file...");
             float percentDone = 0f;
-            if (uploadedBytes != null && uploadedBytes > 0 && uploadedBytes < total) {
-                randomAccessFile.seek(uploadedBytes-1);
-                percentDone = (uploadedBytes / total) * 100;
+            if (bytesWritten != null && bytesWritten > 0 && bytesWritten < fileSize) {
+                randomAccessFile.seek(bytesWritten-1);
+                percentDone = (((float) bytesWritten) / fileSize) * 100;
                 System.out.println(String.format("Skipping %d%% of upload", (int) percentDone));
             }
-            long bytesWritten = 0;
-            int b;
             int[] bytes = new int[Constants.BUFFER_SIZE];
             while (bytesWritten < fileSize) {
                 for (int i = 0; i < Constants.BUFFER_SIZE; i++) {
-                    b = randomAccessFile.read();
+                    int b = randomAccessFile.read();
                     if (b == -1) break;
                     bytes[i] = b;
                     bytesWritten++;
-                    int percent = (int) ((bytesWritten / total) * 100);
+                    int percent = (int) ((((float) bytesWritten) / fileSize) * 100);
                     if (percent > percentDone) {
                         System.out.println(percent + "% uploaded");
+                        System.out.flush();
                         percentDone += 10;
                     }
                 }
                 upload.write(bytes);
             }
+        } finally {
+            upload.close();
         }
 
         System.out.println("File uploaded");
@@ -211,7 +210,7 @@ public class FSSClient {
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw")) {
             if (downloadedBytes != 0 && downloadedBytes < total) {
                 randomAccessFile.seek(downloadedBytes);
-                percentDone = (downloadedBytes / total) * 100;
+                percentDone = (((float) downloadedBytes) / total) * 100;
                 System.out.println(String.format("Skipping %d%% of download", (int) percentDone));
             }
 
@@ -221,12 +220,13 @@ public class FSSClient {
                 buffer = download.read();
 
                 for (int c : buffer) {
+                    if (downloadedBytes++ >= total) break;
                     randomAccessFile.write(c);
                 }
-                downloadedBytes += Constants.BUFFER_SIZE;
                 int percent = (int) ((downloadedBytes / total) * 100);
                 if (percent > percentDone) {
                     System.out.println(percent + "% downloaded");
+                    System.out.flush();
                     percentDone += 10;
                 }
             }

@@ -8,8 +8,9 @@ import java.rmi.Remote;
  */
 public interface Upload extends Remote {
 
-    public void write(int[] bytes) throws IOException;
+    void write(int[] bytes) throws IOException;
 
-    public long fileSize() throws IOException;
+    long fileSize() throws IOException;
 
+    void close() throws IOException;
 }
