@@ -153,7 +153,7 @@ public class FSSClient {
             if (bytesWritten != null && bytesWritten > 0 && bytesWritten < fileSize) {
                 randomAccessFile.seek(bytesWritten);
                 percentDone = (((float) bytesWritten) / fileSize) * 100;
-                System.out.println(String.format("Skipping %d%% of upload", (int) percentDone));
+                System.out.format("Skipping %d%% of upload\n", (int) percentDone);
             }
             int[] bytes = new int[Constants.BUFFER_SIZE];
             while (bytesWritten < fileSize) {
@@ -161,13 +161,13 @@ public class FSSClient {
                     int b = randomAccessFile.read();
                     if (b == -1) break;
                     bytes[i] = b;
-                    bytesWritten++;
                     int percent = (int) ((((float) bytesWritten) / fileSize) * 100);
                     if (percent > percentDone) {
-                        System.out.println(percent + "% uploaded");
+                        System.out.format("%d%% uploaded\n", percent);
                         System.out.flush();
                         percentDone += 10;
                     }
+                    bytesWritten++;
                 }
                 upload.write(bytes);
             }
@@ -212,7 +212,8 @@ public class FSSClient {
             if (downloadedBytes != 0 && downloadedBytes < total) {
                 randomAccessFile.seek(downloadedBytes);
                 percentDone = (((float) downloadedBytes) / total) * 100;
-                System.out.println(String.format("Skipping %d%% of download", (int) percentDone));
+                System.out.format("Skipping %d%% of download\n", (int) percentDone);
+                System.out.flush();
             }
 
             int[] buffer;
@@ -223,14 +224,16 @@ public class FSSClient {
                 for (int c : buffer) {
                     if (downloadedBytes++ >= total) break;
                     randomAccessFile.write(c);
-                }
-                int percent = (int) ((downloadedBytes / total) * 100);
-                if (percent > percentDone) {
-                    System.out.println(percent + "% downloaded");
-                    System.out.flush();
-                    percentDone += 10;
+                    int percent = (int) ((downloadedBytes / total) * 100);
+                    if (percent > percentDone) {
+                        System.out.format("%d%% downloaded\n", percent);
+                        System.out.flush();
+                        percentDone += 10;
+                    }
                 }
             }
+        } finally {
+            download.close();
         }
         System.out.println("File downloaded");
     }

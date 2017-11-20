@@ -53,4 +53,15 @@ public class DownloadServer implements Download {
         }
         return buffer;
     }
+
+    /**
+     * Closes the file.
+     * @throws IOException if there is a communication error
+     */
+    @Override
+    public void close() throws IOException {
+        this.randomAccessFile.close();
+    }
+
+
 }

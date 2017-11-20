@@ -9,6 +9,8 @@ import java.rmi.Remote;
 public interface Download extends Remote {
 
     long fileSize() throws IOException;
+
     int[] read() throws IOException;
 
+    void close() throws IOException;
 }

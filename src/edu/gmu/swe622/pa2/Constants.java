@@ -7,5 +7,5 @@ public class Constants {
     /**
      * The size of the buffers used to upload and download files.
      */
-    public static int BUFFER_SIZE = 124;
+    public static int BUFFER_SIZE = 256;
 }
