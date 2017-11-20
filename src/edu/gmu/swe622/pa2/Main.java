@@ -4,7 +4,7 @@ import java.rmi.Naming;
 import java.util.stream.Stream;
 
 /**
- * Main executable class for starting server or client programs.
+ * Main executable class for starting FSS server and client programs.
  */
 public class Main {
 
@@ -29,8 +29,8 @@ public class Main {
     /**
      * Main method to start server and client from the command line.
      * Verifies that the arguments passed are correct, in which case it hands control to the appropriate
-     * class. Otherwise prints usage information and exists. If an exception is thrown while processing the request,
-     * an error message is printed and the process exits with a return status of 1.
+     * class. Otherwise prints usage information and exits. If an exception is thrown while processing the request,
+     * an error message is printed on stderr and the process exits with a return status of 1.
      * @param args  command line arguments
      */
     public static void main(String[] args) {
@@ -93,7 +93,7 @@ public class Main {
 
             } catch (Exception exp) {
                 System.err.println(exp.getMessage());
-                exp.printStackTrace();
+                //exp.printStackTrace();
                 System.exit(1);
             }
         } else {

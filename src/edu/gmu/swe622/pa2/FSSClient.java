@@ -1,4 +1,5 @@
 package edu.gmu.swe622.pa2;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -10,6 +11,7 @@ import java.nio.file.Paths;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.List;
 
 /**
  * Implements the client for the File Sharing System.
@@ -68,9 +70,8 @@ public class FSSClient {
     /**
      * Sends a request to remove the file specified by fileName from the server.
      * @param fileName the name of the file to remove
-     * @throws Exception  if the request could not be completed successfully
      * @throws IOException  if there is an error while communicating with the server
-     * @throws ClassNotFoundException  if the response from the server cannot be cast to a Response object
+     * @throws IllegalArgumentException
      */
     private void rm(String fileName) throws IOException {
         if (fileName == null || fileName.length() == 0) {
@@ -83,9 +84,8 @@ public class FSSClient {
     /**
      * Sends a request to create a directory named by dirName to the server.
      * @param dirName the name of the directory to create
-     * @throws Exception  if the request could not be completed successfully
      * @throws IOException  if there is an error while communicating with the server
-     * @throws ClassNotFoundException  if the response from the server cannot be cast to a Response object
+     * @throws IllegalArgumentException
      */
     private void mkdir(String dirName) throws IOException {
         if (dirName == null || dirName.length() == 0) {
@@ -106,16 +106,16 @@ public class FSSClient {
         if (dirName == null || dirName.length() == 0) {
             throw new IllegalArgumentException("dirName cannot be blank");
         }
+        List<String> contents = this.fss.dir(dirName);
         System.out.println("Directory contents:");
-        this.fss.dir(dirName).stream().forEach(System.out::println);
+        contents.stream().forEach(System.out::println);
     }
 
     /**
      * Sends a request to remove a directory specified by dirName from the server.
      * @param dirName  the name of the directory to delete.
-     * @throws Exception  if the request could not be completed successfully
      * @throws IOException  if there is an error while communicating with the server
-     * @throws ClassNotFoundException  if the response from the server cannot be cast to a Response object
+     * @throws IllegalArgumentException  if dirName is not a valid path
      */
     private void rmdir(String dirName) throws IOException {
         if (dirName == null || dirName.length() == 0) {
@@ -131,6 +131,8 @@ public class FSSClient {
      * @param localFilePath path of the file to upload to the server
      * @param remoteDestination the name of the remote directory where the file should be created on
      *                          the server
+     * @throws IOException if there is an error while communicating with the server
+     * @throws IllegalArgumentException  if localFilePath is not a valid path
      */
     private void upload(String localFilePath, String remoteDestination)
             throws IllegalArgumentException, IOException {
@@ -149,7 +151,7 @@ public class FSSClient {
             System.out.println("Uploading file...");
             float percentDone = 0f;
             if (bytesWritten != null && bytesWritten > 0 && bytesWritten < fileSize) {
-                randomAccessFile.seek(bytesWritten-1);
+                randomAccessFile.seek(bytesWritten);
                 percentDone = (((float) bytesWritten) / fileSize) * 100;
                 System.out.println(String.format("Skipping %d%% of upload", (int) percentDone));
             }
@@ -181,16 +183,15 @@ public class FSSClient {
      * directory specified by destination.
      * @param remoteFile  the file to download from the server
      * @param destination the destination directory for the downloaded file
-     * @throws Exception  if the request could not be completed successfully
      * @throws IOException  if there is an error while communicating with the server
-     * @throws ClassNotFoundException  if the response from the server cannot be cast to a Response object
+     * @throws IllegalArgumentException  if destination is not a valid path
      */
-    private void download(String remoteFile, String destination) throws Exception {
+    private void download(String remoteFile, String destination) throws IOException {
         Path destinationPath = FileSystems.getDefault().getPath(destination);
         if (Files.isDirectory(destinationPath)) {
-            throw new Exception("A directory with that name already exists.");
+            throw new IllegalArgumentException("A directory with that name already exists.");
         } else if (! (destinationPath.getParent() == null || Files.exists(destinationPath.getParent()))) {
-            throw new Exception("Destination directory could not be found.");
+            throw new IllegalArgumentException("Destination directory could not be found.");
         }
         File file = destinationPath.toFile();
         Download download = this.fss.download(remoteFile, file.length());
@@ -236,7 +237,7 @@ public class FSSClient {
 
     /**
      * Sends a shutdown request to the server.
-     * @throws RemoteException
+     * @throws RemoteException  if there is an error communicating with the server
      */
     private void shutdown() throws RemoteException {
         this.fss.shutdown();

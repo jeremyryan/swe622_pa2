@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.rmi.Remote;
 
 /**
- * Created by jmr on 11/14/17.
+ * Interface for uploading a file remotely.
  */
 public interface Upload extends Remote {
 

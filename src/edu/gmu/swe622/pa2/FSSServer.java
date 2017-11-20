@@ -15,29 +15,73 @@ import java.util.List;
  */
 public class FSSServer extends UnicastRemoteObject implements FileSharingSystem {
 
+    /**
+     * Constructor.
+     * @throws RemoteException  if there is a communication error
+     */
     protected FSSServer() throws RemoteException {
     }
 
+    /**
+     * Validates the passed in parameters and returns a remote object to use for the download.
+     * @param remoteFile  path to the file to download
+     * @param startAt  the point in the file to start at
+     * @return  a remote object to use for the download
+     * @throws IOException  if there is a communication error
+     * @throws IllegalArgumentException  if remoteFile or startAt does not have a valid value
+     */
     @Override
     public Download download(String remoteFile, long startAt) throws IOException {
+        if (remoteFile == null || remoteFile.length() == 0) {
+            throw new IllegalArgumentException("remoteFile cannot be blank");
+        }
         Path filePath = this.getPath(remoteFile);
-        Download download = new DownloadServer(filePath, startAt);
-        return (Download) exportObject(download, 0);
-    }
-
-    @Override
-    public Upload upload(String destinationPath, long length) throws IOException {
-        Path filePath = this.getPath(destinationPath);
-        Upload upload = new UploadServer(filePath, length);
+        if (startAt < 0) {
+            throw new IllegalArgumentException("startAt must be >= 0");
+        }
         if (! this.validatePath(filePath)) {
             throw new IllegalArgumentException("Relative file paths are not supported");
         }
         if (Files.isDirectory(filePath)) {
             throw new IllegalArgumentException("A directory with that name already exists.");
         }
+        Download download = new DownloadServer(filePath, startAt);
+        return (Download) exportObject(download, 0);
+    }
+
+    /**
+     * Validates the parameters and returns a remote object to use for the upload.
+     * @param destinationPath  the path where the file should be uploaded
+     * @param length  the number of bytes in the uploaded file
+     * @return  a remote object to use for the upload
+     * @throws IOException if there is a communication error
+     * @throws IllegalArgumentException  if destinationPath or length does not have a valid value
+     */
+    @Override
+    public Upload upload(String destinationPath, long length) throws IOException {
+        if (destinationPath == null || destinationPath.length() == 0) {
+            throw new IllegalArgumentException("destinationPath cannot be blank");
+        }
+        Path filePath = this.getPath(destinationPath);
+        if (length < 0) {
+            throw new IllegalArgumentException("startAt must be >= 0");
+        }
+        if (! this.validatePath(filePath)) {
+            throw new IllegalArgumentException("Relative file paths are not supported");
+        }
+        if (Files.isDirectory(filePath)) {
+            throw new IllegalArgumentException("A directory with that name already exists.");
+        }
+        Upload upload = new UploadServer(filePath, length);
         return (Upload) exportObject(upload, 0);
     }
 
+    /**
+     * Removes the specified file from the file server repository.
+     * @param fileName  the name of the file to remove.
+     * @throws IOException if there is a communication error
+     * @throws IllegalArgumentException  if fileName is invalid
+     */
     @Override
     public void rm(String fileName) throws IOException {
         if (fileName == null || fileName.length() == 0) {
@@ -56,6 +100,13 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
         Files.deleteIfExists(filePath);
     }
 
+    /**
+     * Returns a list of the files and directories in the specified directory.
+     * @param dirName  the directory to list
+     * @return  a list of the name of the files and directories in the directory specified by dirName
+     * @throws IllegalArgumentException  if the path specified by dirName is invalid
+     * @throws IOException if there is a communication error
+     */
     @Override
     public List<String> dir(String dirName) throws IllegalArgumentException, IOException {
         if (dirName == null || dirName.length() == 0) {
@@ -76,6 +127,12 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
         return fileNames;
     }
 
+    /**
+     * Deletes a directory from the FSS repository.
+     * @param dirName  the name of the directory to delete
+     * @throws IOException  if there is a communication error
+     * @throws IllegalArgumentException  if dirName is an invalid path
+     */
     @Override
     public void rmdir(String dirName) throws IOException {
         if (dirName == null || dirName.length() == 0) {
@@ -94,6 +151,12 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
         Files.deleteIfExists(filePath);
     }
 
+    /**
+     * Creates a directory in the FSS repository.
+     * @param dirName  the path and name of the directory to created
+     * @throws IOException if there is a communication error
+     * @throws IllegalArgumentException  if dirName is an invalid path
+     */
     @Override
     public void mkdir(String dirName) throws IOException {
         if (dirName == null || dirName.length() == 0) {
@@ -103,6 +166,10 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
         Files.createDirectory(filePath);
     }
 
+    /**
+     * Shuts down the FSS server.
+     * @throws RemoteException if there is a communication error
+     */
     @Override
     public void shutdown() throws RemoteException {
         unexportObject(this, true);

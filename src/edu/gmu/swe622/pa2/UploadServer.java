@@ -6,7 +6,7 @@ import java.io.RandomAccessFile;
 import java.nio.file.Path;
 
 /**
- * Created by jmr on 11/13/17.
+ * Implements remote Upload interface.
  */
 public class UploadServer implements Upload {
 
@@ -15,6 +15,12 @@ public class UploadServer implements Upload {
     private long length;
     private long bytesUploaded;
 
+    /**
+     * Constructor.
+     * @param filePath the path to upload the file to
+     * @param length  the length of the file to upload
+     * @throws IOException if there is a communication error
+     */
     public UploadServer(Path filePath, long length) throws IOException {
         this.filePath = filePath;
         this.length = length;
@@ -32,12 +38,22 @@ public class UploadServer implements Upload {
         }
     }
 
-
+    /**
+     * Returns the size of the existing file.
+     * @return  the count of bytes in the file, only > 0 if it was already partly uploaded
+     * @throws IOException if there is a communication error
+     */
     @Override
     public long fileSize() throws IOException {
         return this.randomAccessFile.length();
     }
 
+    /**
+     * Writes the bytes from the buffer to the file being uploaded. If the number of bytes written exceeds the total
+     * file size, the remaining bytes in the buffer are ignored.
+     * @param bytes  the bytes to write
+     * @throws IOException if there is a communication error
+     */
     @Override
     public void write(int[] bytes) throws IOException {
         for (int i = 0; i < bytes.length; i++) {
@@ -46,6 +62,10 @@ public class UploadServer implements Upload {
         }
     }
 
+    /**
+     * Closes the file.
+     * @throws IOException if there is a communication error
+     */
     @Override
     public void close() throws IOException {
         this.randomAccessFile.close();
