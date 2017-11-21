@@ -33,11 +33,11 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
     @Override
     public Download download(String remoteFile, long startAt) throws IOException {
         if (remoteFile == null || remoteFile.length() == 0) {
-            throw new IllegalArgumentException("remoteFile cannot be blank");
+            throw new IllegalArgumentException("File name cannot be blank");
         }
         Path filePath = this.getPath(remoteFile);
         if (startAt < 0) {
-            throw new IllegalArgumentException("startAt must be >= 0");
+            throw new IllegalArgumentException("File length must be >= 0");
         }
         if (! this.validatePath(filePath)) {
             throw new IllegalArgumentException("Relative file paths are not supported");
@@ -60,11 +60,11 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
     @Override
     public Upload upload(String destinationPath, long length) throws IOException {
         if (destinationPath == null || destinationPath.length() == 0) {
-            throw new IllegalArgumentException("destinationPath cannot be blank");
+            throw new IllegalArgumentException("File name cannot be blank");
         }
         Path filePath = this.getPath(destinationPath);
         if (length < 0) {
-            throw new IllegalArgumentException("startAt must be >= 0");
+            throw new IllegalArgumentException("File length must be >= 0");
         }
         if (! this.validatePath(filePath)) {
             throw new IllegalArgumentException("Relative file paths are not supported");
@@ -85,17 +85,17 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
     @Override
     public void rm(String fileName) throws IOException {
         if (fileName == null || fileName.length() == 0) {
-            throw new IllegalArgumentException("fileName cannot be blank");
+            throw new IllegalArgumentException("File name cannot be blank");
         }
         Path filePath = this.getPath(fileName);
         if (! this.validatePath(filePath)) {
             throw new IllegalArgumentException("Relative file paths are not supported");
         }
         if (! Files.exists(filePath)) {
-            throw new IllegalArgumentException("fileName could not be found");
+            throw new IllegalArgumentException("File could not be found");
         }
         if (Files.isDirectory(filePath)) {
-            throw new IllegalArgumentException("fileName is a directory");
+            throw new IllegalArgumentException("File is a directory");
         }
         Files.deleteIfExists(filePath);
     }
@@ -110,7 +110,7 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
     @Override
     public List<String> dir(String dirName) throws IllegalArgumentException, IOException {
         if (dirName == null || dirName.length() == 0) {
-            throw new IllegalArgumentException("dirName cannot be blank");
+            throw new IllegalArgumentException("File name cannot be blank");
         }
         Path dirPath = this.getPath(dirName);
         if (! this.validatePath(dirPath)) {
@@ -136,17 +136,17 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
     @Override
     public void rmdir(String dirName) throws IOException {
         if (dirName == null || dirName.length() == 0) {
-            throw new IllegalArgumentException("dirName cannot be blank");
+            throw new IllegalArgumentException("File name cannot be blank");
         }
         Path filePath = this.getPath(dirName);
         if (! this.validatePath(filePath)) {
             throw new IllegalArgumentException("Relative file paths are not supported");
         }
         if (! Files.exists(filePath)) {
-            throw new IllegalArgumentException("dirName could not be found");
+            throw new IllegalArgumentException("File could not be found");
         }
         if (! Files.isDirectory(filePath)) {
-            throw new IllegalArgumentException("dirName is not a directory");
+            throw new IllegalArgumentException("File is not a directory");
         }
         Files.deleteIfExists(filePath);
     }
@@ -160,7 +160,7 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
     @Override
     public void mkdir(String dirName) throws IOException {
         if (dirName == null || dirName.length() == 0) {
-            throw new IllegalArgumentException("dirName cannot be blank");
+            throw new IllegalArgumentException("File name cannot be blank");
         }
         Path filePath = this.getPath(dirName);
         Files.createDirectory(filePath);
