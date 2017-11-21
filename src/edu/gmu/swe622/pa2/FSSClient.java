@@ -21,7 +21,12 @@ public class FSSClient {
     private FileSharingSystem fss;
 
     /**
-     * Constructor.
+     * Constructor. Attempts to retrieve a reference to the server using the hostname and port.
+     * @param hostName  the host on which the server is running
+     * @param port  the port at which the server is listening
+     * @throws RemoteException if there is an error while communicating with the server
+     * @throws NotBoundException  if the remote server cannot be found
+     * @throws MalformedURLException if the URL passed to the Naming context is invalid
      * @throws IllegalArgumentException  if either hostName or port are null
      */
     public FSSClient(String hostName, Integer port) throws RemoteException, NotBoundException, MalformedURLException {
@@ -154,6 +159,7 @@ public class FSSClient {
                 randomAccessFile.seek(bytesWritten);
                 percentDone = (((float) bytesWritten) / fileSize) * 100;
                 System.out.format("Skipping %d%% of upload\n", (int) percentDone);
+                System.out.flush();
             }
             int[] bytes = new int[Constants.BUFFER_SIZE];
             while (bytesWritten < fileSize) {
@@ -162,7 +168,7 @@ public class FSSClient {
                     if (b == -1) break;
                     bytes[i] = b;
                     int percent = (int) ((((float) bytesWritten) / fileSize) * 100);
-                    if (percent > percentDone) {
+                    if (percent >= percentDone) {
                         System.out.format("%d%% uploaded\n", percent);
                         System.out.flush();
                         percentDone += 10;
@@ -222,14 +228,15 @@ public class FSSClient {
                 buffer = download.read();
 
                 for (int c : buffer) {
-                    if (downloadedBytes++ >= total) break;
+                    if (downloadedBytes >= total) break;
                     randomAccessFile.write(c);
                     int percent = (int) ((downloadedBytes / total) * 100);
-                    if (percent > percentDone) {
+                    if (percent >= percentDone) {
                         System.out.format("%d%% downloaded\n", percent);
                         System.out.flush();
                         percentDone += 10;
                     }
+                    downloadedBytes++;
                 }
             }
         } finally {
