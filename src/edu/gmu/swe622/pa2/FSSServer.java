@@ -148,6 +148,9 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
         if (! Files.isDirectory(filePath)) {
             throw new IllegalArgumentException("File is not a directory");
         }
+        if (Files.list(filePath).count() > 0) {
+            throw new IllegalArgumentException("Directory must be empty before deleting");
+        }
         Files.deleteIfExists(filePath);
     }
 
@@ -163,6 +166,9 @@ public class FSSServer extends UnicastRemoteObject implements FileSharingSystem 
             throw new IllegalArgumentException("File name cannot be blank");
         }
         Path filePath = this.getPath(dirName);
+        if (Files.exists(filePath)) {
+            throw new IllegalArgumentException("A directory with that name already exists");
+        }
         Files.createDirectory(filePath);
     }
 
